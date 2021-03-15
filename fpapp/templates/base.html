@@ -1,0 +1,122 @@
+{% load qurl %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#000000"/>
+    <meta
+            name="description"
+            content="Web site created for Image Search"
+    />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+
+    <title>Image Search</title>
+
+    <style>
+        .gallery img{
+            height: 208px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<noscript>You need to enable JavaScript to run this website.</noscript>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand">Flickr Images</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="{% url 'images' %}">Search <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'favorite' %}">Favorite</a>
+            </li>
+
+        </ul>
+    </div>
+</nav>
+{% if messages %}
+    <ul class="messages m-0 p-0" id="messages">
+        {% for message in messages %}
+            <li class="warning alert alert-danger rounded-0 d-block">
+                {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}Important: {% endif %}
+                {{ message }}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% block content %}
+{% endblock %}
+{% if photos.page %}
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            {% if photos.page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="{% qurl request.get_full_path page=photos.page|add:"-1" %}">Previous</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                </li>
+            {% endif %}
+
+            {% if photos.page|add:'-4' > 1 %}
+                <li class="page-item"><a class="page-link"
+                                         href="{% qurl request.get_full_path page=photos.page|add:'-5' %}">&hellip;</a>
+                </li>
+            {% endif %}
+
+            {% for i in loop_range %}
+                {% if photos.page == i %}
+                    <li class="page-item active" aria-current="page">
+              <span class="page-link">
+                {{ i }}
+                <span class="sr-only">(current)</span>
+              </span>
+                    </li>
+                {% elif i > photos.page|add:'-5' and i < photos.page|add:'5' %}
+                    <li class="page-item"><a class="page-link"
+                                             href="{% qurl request.get_full_path page=i %}">{{ i }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if photos.pages > photos.page|add:'4' %}
+                <li class="page-item"><a class="page-link"
+                                         href="{% qurl request.get_full_path page=photos.page|add:'5' %}">&hellip;</a>
+                </li>
+            {% endif %}
+
+            {% if photos.page < photos.pages %}
+                <li class="page-item">
+                    <a class="page-link" href="{% qurl request.get_full_path page=photos.page|add:"1" %}">Next</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+</body>
+{% block js %}
+{% endblock %}
+</html>

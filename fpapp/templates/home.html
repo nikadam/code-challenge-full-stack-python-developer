@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="alert alert-danger" role="alert" id="error-alert" hidden>
+
+    </div>
+    <div class="row mx-0 mt-3">
+
+        <div class="form-group col-md-3">
+            <form method="get">
+                <label for="one">Lat : </label>
+                <input type="number" step="any" class="form-control" id="lat" name="lat">
+        </div>
+
+        <div class="form-group col-md-3">
+            <label for="two">Long : </label>
+            <input type="number" step="any" class="form-control" id="long" name="lon">
+        </div>
+        <div class="form-group col-md-3 mt-4 pt-2">
+            <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+        <div class="col-md-3 mt-4 pt-2">
+            <div class="form-group">
+                <select id="places" class="form-select form-select-lg mb-3 form-control" aria-label=".form-select-lg example"
+                        onchange="placeSelect()">
+                    <option selected>Select Location</option>
+                    {% for place in places %}
+                        <option value="{{ place.name }}" data_obj="{{ place|safe }}">{{ place.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="row gallery mx-0 mt-3 mb-3">
+        {% for photo in photos.photo %}
+            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-4 col-12 text-center">
+                {% with photo.farm|stringformat:"s" as farm %}
+                    <img src="{{ "https://farm"|add:farm|add:".staticflickr.com/"|add:photo.server|add:"/"|add:photo.id|add:"_"|add:photo.secret|add:".jpg" }}"/>
+                    <button class="btn btn-default my-3" id="{{ photo.id }}" onclick="addToFav({{ photo }})">Add to Favorite
+                    </button>
+            </div>
+                {% endwith %}
+        {% endfor %}
+
+    </div>
+
+{% endblock %}
+{% block js %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <script>
+        let favorite = []
+        window.onload = () => {
+            axios.get("{{ request.host }}/api/favorite_list/")
+                .then(response => {
+                    favorite = response.data
+                    const images = JSON.parse("{{photos.photo|safe}}".replace(/'/g, '"'))
+                    const commonImages = [];
+                    favorite.filter(({id}) => {
+                        for (let i = 0; i < images.length; i++) {
+                            if (parseInt(images[i].id) === id) {
+                                commonImages.push(id)
+                            }
+                        }
+                    });
+                    for (let i = 0; i < commonImages.length; i++) {
+                        document.getElementById(commonImages[i]).className = "btn btn-success my-3"
+                        document.getElementById(commonImages[i]).disabled = true
+                        document.getElementById(commonImages[i]).innerHTML = "Added"
+                    }
+
+
+                })
+                .catch(error => console.log({...error}))
+
+            let params = (new URL(document.location)).searchParams;
+            let name = params.get("name");
+            if (name) {
+                const selectElement = document.getElementById('places')
+                selectElement.value = name
+            }
+             setTimeout(function () {
+                        document.getElementById("messages").hidden = true
+                    }, 2000);
+        }
+        const addToFav = async (data) => {
+            '{% csrf_token %}'
+            const csrftoken = document.getElementsByName('csrfmiddlewaretoken').value;
+            await axios.post("{{ request.host }}/api/favorite_list/", data, {
+                headers: {'X-CSRFToken': csrftoken, "Content-Type": "application/json"},
+                mode: "same-origin"
+            })
+                .then(response => {
+                    if (response.status === 201) {
+                        document.getElementById(response.data.id).className = "btn btn-success my-3"
+                        document.getElementById(response.data.id).disabled = true
+                        document.getElementById(response.data.id).innerHTML = "Added"
+                    }
+                })
+                .catch(error => {
+                    document.getElementById("error-alert").innerHTML = error.response.data.id[0]
+                    document.getElementById("error-alert").hidden = false
+                    setTimeout(function () {
+                        document.getElementById("error-alert").hidden = true
+                    }, 1000);
+                })
+        }
+
+        const placeSelect = () => {
+            const selectElement = document.getElementById('places')
+            console.log(selectElement.options[0].value)
+            let place = JSON.parse(selectElement.options[selectElement.selectedIndex].getAttribute('data_obj').replace(/'/g, '"'));
+
+            window.location.href = `{{ request.path }}?lat=${place.lat}&lon=${place.lon}&name=${place.name}`
+        }
+    </script>
+
+{% endblock %}

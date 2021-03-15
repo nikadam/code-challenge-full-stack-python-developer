@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - 1300:80
+    volumes:
+      - static_volume:/home/app/code-challenge-full-stack-python-developer/static
+    depends_on:
+      - web
+    restart: "on-failure"
+  web:
+    build: . #build the image for the web service from the dockerfile in parent directory
+    command: sh -c "python manage.py makemigrations &&
+                    python manage.py migrate &&
+                    python manage.py loaddata fpapp/fixtures/cities.json &&
+                    python manage.py initiate_admin &&
+                    python manage.py collectstatic --no-input &&
+                    gunicorn flickerphotos.wsgi:application --bind 0.0.0.0:${APP_PORT}"
+    volumes:
+      - .:/code-challenge-full-stack-python-developer:rw # map data and files from parent directory in host to microservice directory in docker containe
+      - static_volume:/home/app/code-challenge-full-stack-python-developer/static
+    env_file:
+      - .env
+    image: code-challenge-full-stack-python-developer
+
+    expose:
+      - ${APP_PORT}
+    restart: "on-failure"
+    depends_on:
+      - db
+  db:
+    image: postgres:11-alpine
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+      - PGPORT=${DB_PORT}
+      - POSTGRES_USER=${POSTGRES_USER}
+    restart: "on-failure"
+
+
+volumes:
+  postgres_data:
+  static_volume:
