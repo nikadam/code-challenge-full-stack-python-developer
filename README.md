@@ -58,8 +58,24 @@ The instructions assume that you have already installed [Docker](https://docs.do
 In order to get started be sure to clone this project onto your Machine. 
 
     
-    git clone https://github.com/vegasbrianc/docker-compose-demo.git .
-    
+    git clone https://github.com/nikadam/code-challenge-full-stack-python-developer.git .
+
+# Set the following values in a .env file
+
+SECRET_KEY=+4!ew=onpd0c$di@laxt6wyb)l3@s3q!@0dt++@8l6n&i+0+vn </br>
+ALLOWED_HOSTS=localhost 127.0.0.1 0.0.0.0 [::1]
+ENGINE=django.db.backends.postgresql</br>
+DB_NAME=flickr</br>
+POSTGRES_USER=flickr</br>
+POSTGRES_PASSWORD=flickr123</br>
+DB_HOST=db</br>
+DB_PORT=5432</br>
+APP_PORT=8000</br>
+DJANGO_SU_NAME=admin</br>
+DJANGO_SU_EMAIL=admin@admin.com</br>
+DJANGO_SU_PASSWORD=admin</br>
+
+FLICKR_API_KEY=</br>
 
 # How to get up and running
 Once you've cloned the project to your host we can now start our code-challenge project. Easy! Navigate to the directory in which you cloned the project. Run the following commands from this directory 
@@ -67,8 +83,9 @@ Once you've cloned the project to your host we can now start our code-challenge 
 
     docker-compose up --build
 
+Once Setup completed you can visit the website [Localhost](http://0.0.0.0:1300/)
+</br>
+
 The  docker-compose command will pull the images from Docker Hub and then link them together based on the information inside the docker-compose.yml file. This will create ports, links between containers, and configure applications as requrired. After the command completes we can now view the status of our stack
 
     docker-compose ps
-
-Once Setup completed you can visit the website [Localhost](http://0.0.0.0:1300/)
